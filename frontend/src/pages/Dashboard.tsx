@@ -8,17 +8,17 @@ import {
     ToggleButtonGroup,
     Tabs,
     Tab,
-    Button
+    Button,
+    Typography,
+    Paper,
+    Container
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ja } from "date-fns/locale";
-import { exportItemSalesToCsv } from "../utils/exportToCsv";
-import { exportDailySalesToCsv } from "../utils/exportToCsv";
-import { exportUserSalesToCsv } from "../utils/exportToCsv";
+import { exportItemSalesToCsv, exportDailySalesToCsv, exportUserSalesToCsv } from "../utils/exportToCsv";
 import { SalesDataTable } from "../components/SalesDataTable";
-
 
 // dailyDataとuserDataの型調整用
 interface ChartData {
@@ -46,7 +46,7 @@ export const Dashboard = () => {
         }
     };
 
-    useEffect (() => {
+    useEffect(() => {
         const from = fromDate?.toISOString().slice(0, 10);
         const to = toDate?.toISOString().slice(0, 10);
         if (!from || !to) return;
@@ -65,124 +65,130 @@ export const Dashboard = () => {
         }
     }, [fromDate, toDate, tab]);
 
+    const commonPaperStyle = {
+        p: 3,
+        borderRadius: 4,
+        boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.1)",
+        backdropFilter: "blur(4px)",
+        backgroundColor: "rgba(255, 255, 255, 0.5)",
+        border: "1px solid rgba(255, 255, 255, 0.18)",
+        mb: 3
+    };
+
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
-            <Box sx={{ p: 3 }}>
-                <h2>売上ダッシュボード</h2>
+            <Box sx={{ backgroundColor: "#f0f2f5", minHeight: "100vh", display: "flex", alignItems: "center" }}>
+                <Container maxWidth="md" sx={{ py: 4 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: "bold", color: "#333" }}>
+                            売上ダッシュボード
+                        </Typography>
+                        
+                    </Box>
 
-                <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-                    <DatePicker
-                        label="開始日"
-                        value={fromDate}
-                        onChange={(newValue) => setFromDate(newValue)}
-                        slotProps={{ textField: { size: "small" } }}
-                    />
-                    <DatePicker
-                        label="終了日"
-                        value={toDate}
-                        onChange={(newValue) => setToDate(newValue)}
-                        slotProps={{ textField: { size: "small" } }}
-                    />
-                </Box>
-
-                <Box sx={{ display: "flex", gap: 3, mb: 2 }}>
-                    <Button
-                        variant="outlined"
-                        onClick={() => {
-                            if (tab === "item") exportItemSalesToCsv(itemData);
-                            else if (tab === "daily") exportDailySalesToCsv(dailyRawData);
-                            else if (tab === "user") exportUserSalesToCsv(userRawData);
-                        }}
-                        disabled={
-                            (tab === "item" && itemData.length === 0) ||
-                            (tab === "daily" && dailyData.length === 0) ||
-                            (tab === "user" && userData.length === 0)
-                        }
-                    >
-                        CSV出力
-                    </Button>
-                </Box>
-
-                <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
-                    <Tab label="商品別" value="item" />
-                    <Tab label="日別" value="daily" />
-                    <Tab label="ユーザー別" value="user" />
-                </Tabs>
-
-                <ToggleButtonGroup
-                    value={chartType}
-                    exclusive
-                    onChange={handleChartChange}
-                    aria-label="chart type"
-                    sx={{ mt: 2, mb: 2 }}
-                >
-                    <ToggleButton value="pie">円グラフ</ToggleButton>
-                    <ToggleButton value="bar">棒グラフ</ToggleButton>
-                </ToggleButtonGroup>
-
-                {tab === "item" && (
-                    <>
-                        <ItemSalesChart data={itemData} chartType={chartType} />
-                        <SalesDataTable
-                            rows={itemData.map((d, i) => ({
-                                id: i,
-                                name: d.itemName,
-                                totalSales: d.totalSales,
-                            }))}
-                            xLabel="商品名"
-                        />
-                    </>
-                )}
-
-                {tab === "daily" && (
-                    <>
-                        {chartType === "pie" ? (
-                            <ItemSalesChart
-                                data={dailyData.map((d) => ({
-                                    itemName: d.name,
-                                    totalSales: d.totalSales,
-                                    totalQuantity: 0,
-                                }))}
-                                chartType="pie"
+                    <Paper sx={commonPaperStyle}>
+                        <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
+                            <DatePicker
+                                label="開始日"
+                                value={fromDate}
+                                onChange={(newValue) => setFromDate(newValue)}
                             />
-                        ) : (
-                            <SalesBarChart data={dailyData} xLabel="日付" />
-                        )}
-                        <SalesDataTable
-                            rows={dailyData.map((d, i) => ({
-                                id: i,
-                                name: d.name,
-                                totalSales: d.totalSales,
-                            }))}
-                            xLabel="日付"
-                        />
-                    </>
-                )}
-
-                {tab === "user" && (
-                    <>
-                        {chartType === "pie" ? (
-                            <ItemSalesChart
-                                data={userData.map((d) => ({
-                                    itemName: d.name,
-                                    totalSales: d.totalSales,
-                                    totalQuantity: 0,
-                                }))}
-                                chartType="pie"
+                            <DatePicker
+                                label="終了日"
+                                value={toDate}
+                                onChange={(newValue) => setToDate(newValue)}
                             />
-                        ) : (
-                            <SalesBarChart data={userData} xLabel="ユーザー名" />
+                            <Button
+                                variant="contained"
+                                onClick={() => {
+                                    if (tab === "item") exportItemSalesToCsv(itemData);
+                                    else if (tab === "daily") exportDailySalesToCsv(dailyRawData);
+                                    else if (tab === "user") exportUserSalesToCsv(userRawData);
+                                }}
+                                disabled={
+                                    (tab === "item" && itemData.length === 0) ||
+                                    (tab === "daily" && dailyData.length === 0) ||
+                                    (tab === "user" && userData.length === 0)
+                                }
+                                sx={{ borderRadius: 2, boxShadow: "none", textTransform: "none", height: "56px" }}
+                            >
+                                CSV出力
+                            </Button>
+                        </Box>
+                    </Paper>
+
+                    <Paper sx={commonPaperStyle}>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                            <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}
+                                sx={{
+                                    "& .MuiTabs-indicator": { display: "none" },
+                                    "& .MuiTab-root": {
+                                        borderRadius: "8px 8px 0 0",
+                                        mr: 1,
+                                        "&.Mui-selected": {
+                                            backgroundColor: "rgba(0, 122, 255, 0.1)",
+                                            color: "#007aff",
+                                            fontWeight: "bold"
+                                        },
+                                    },
+                                }}
+                            >
+                                <Tab label="商品別" value="item" />
+                                <Tab label="日別" value="daily" />
+                                <Tab label="ユーザー別" value="user" />
+                            </Tabs>
+                        </Box>
+
+                        <ToggleButtonGroup
+                            value={chartType}
+                            exclusive
+                            onChange={handleChartChange}
+                            aria-label="chart type"
+                            sx={{ mb: 3 }}
+                        >
+                            <ToggleButton value="pie" sx={{ borderRadius: "16px 0 0 16px" }}>円グラフ</ToggleButton>
+                            <ToggleButton value="bar" sx={{ borderRadius: "0 16px 16px 0" }}>棒グラフ</ToggleButton>
+                        </ToggleButtonGroup>
+
+                        {tab === "item" && (
+                            <>
+                                <ItemSalesChart data={itemData} chartType={chartType} />
+                                <SalesDataTable
+                                    rows={itemData.map((d, i) => ({ id: i, name: d.itemName, totalSales: d.totalSales }))}
+                                    xLabel="商品名"
+                                />
+                            </>
                         )}
-                        <SalesDataTable
-                            rows={userData.map((d, i) => ({
-                                id: i,
-                                name: d.name,
-                                totalSales: d.totalSales,
-                            }))}
-                            xLabel="ユーザー名"
-                        />
-                    </>
-                )}
+
+                        {tab === "daily" && (
+                            <>
+                                {chartType === "pie" ? (
+                                    <ItemSalesChart data={dailyData.map((d) => ({ itemName: d.name, totalSales: d.totalSales, totalQuantity: 0 }))} chartType="pie" />
+                                ) : (
+                                    <SalesBarChart data={dailyData} xLabel="日付" />
+                                )}
+                                <SalesDataTable
+                                    rows={dailyData.map((d, i) => ({ id: i, name: d.name, totalSales: d.totalSales }))}
+                                    xLabel="日付"
+                                />
+                            </>
+                        )}
+
+                        {tab === "user" && (
+                            <>
+                                {chartType === "pie" ? (
+                                    <ItemSalesChart data={userData.map((d) => ({ itemName: d.name, totalSales: d.totalSales, totalQuantity: 0 }))} chartType="pie" />
+                                ) : (
+                                    <SalesBarChart data={userData} xLabel="ユーザー名" />
+                                )}
+                                <SalesDataTable
+                                    rows={userData.map((d, i) => ({ id: i, name: d.name, totalSales: d.totalSales }))}
+                                    xLabel="ユーザー名"
+                                />
+                            </>
+                        )}
+                    </Paper>
+                </Container>
             </Box>
         </LocalizationProvider>
     );
