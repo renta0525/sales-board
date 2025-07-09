@@ -1,8 +1,8 @@
-DROP TABLE order_items;
-DROP TABLE orders;
-DROP TABLE items;
-DROP TABLE categories;
-DROP TABLE users;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,

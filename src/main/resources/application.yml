@@ -11,5 +11,5 @@ server:
     context-path: /sb
 
 jwt:
-  secret: postgres
+  secret: Y5ofTi8RXIfdOogL3_qcBx96fDSs2VyiLZLbiUa_j90=
   expiration-ms: 86400000
